@@ -1,10 +1,25 @@
-Vigrant.configure("2") do |config|
+Vagrant.configure("2") do |config|
     config.vm.box = "ubuntu/jammy64"
-    config.vm.hostname = "edu-fi-vm"
-    config.vm.network "private_network", ip: "192:168:33:10"
+    config.vm.network "private_network", ip: "192.168.33.10"
+    
+    # Sync current folder to /vagrant in VM (real-time updates)
+    config.vm.synced_folder ".", "/vagrant", owner: "vagrant", group: "vagrant",
+      SharedFoldersEnableSymlinksCreate: false
+  
     config.vm.provider "virtualbox" do |vb|
-        vb.memory = "2048"
-        vb.cpus = 2
+      vb.memory = "2048"
     end
-    config.vm.provision "shell", path: "hardware/vm/setup.sh"
-end
+  
+    # Run setup script INSIDE the synced folder
+    config.vm.provision "shell", inline: <<-SHELL
+        # Install dependencies
+        apt-get update
+        apt-get install -y docker.io curl
+        curl -SL https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+        
+        # Navigate to backend directory
+        cd /vagrant/backend
+        docker-compose up -d --build
+    SHELL
+  end

@@ -8,7 +8,7 @@
 2. **Start the VM**
 
    ```bash
-   cd hardware-setup/vm
+   cd hardware/vm
    vagrant up
 
    ```
