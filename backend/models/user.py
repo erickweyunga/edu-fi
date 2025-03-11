@@ -52,7 +52,6 @@ class User(SQLModel, table=True):
     enrolled_lessons: List["Enrollment"] = Relationship(back_populates="student")
 
     class Config:
-        orm_mode = True
         from_attributes = True
 
 

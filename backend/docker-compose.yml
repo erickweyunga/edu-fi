@@ -1,8 +1,70 @@
+version: '3.8'
+
 services:
+  db:
+    image: postgres:14-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=edu_fi
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     volumes:
       - .:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    command: >
+      bash -c "
+        python scripts/wait_for_db.py &&
+        python manage.py db upgrade &&
+        uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+      "
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_SERVER=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=edu_fi
+      - SQLALCHEMY_DATABASE_URI=postgresql+asyncpg://postgres:postgres@${POSTGRES_SERVER:-db}/edu_fi
+      - REDIS_SERVER=redis
+    networks:
+      - app-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

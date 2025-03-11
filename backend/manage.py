@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 import argparse
-import asyncio
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -14,7 +12,7 @@ load_dotenv()
 
 # Import project modules
 sys.path.insert(0, str(Path(__file__).parent))
-from core.db import init_db
+# from core.db import init_db
 
 
 def run_alembic(args):
@@ -23,11 +21,11 @@ def run_alembic(args):
     return subprocess.run(alembic_args, check=True)
 
 
-async def init_database():
-    """Initialize database tables using SQLModel metadata"""
-    print("Initializing database tables...")
-    await init_db()
-    print("Database tables initialized successfully.")
+# async def init_database():
+#     """Initialize database tables using SQLModel metadata"""
+#     print("Initializing database tables...")
+#     await init_db()
+#     print("Database tables initialized successfully.")
 
 
 def main():
@@ -121,9 +119,9 @@ def main():
             db_parser.print_help()
             return
 
-        if args.db_command == "init":
-            asyncio.run(init_database())
-        elif args.db_command == "migrate":
+        # if args.db_command == "init":
+        #     asyncio.run(init_database())
+        if args.db_command == "migrate":
             alembic_args = ["revision"]
             if args.autogenerate:
                 alembic_args.append("--autogenerate")

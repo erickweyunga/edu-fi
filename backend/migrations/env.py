@@ -1,6 +1,7 @@
 import asyncio
 import os
 from logging.config import fileConfig
+import logging
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
@@ -24,6 +25,8 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 target_metadata = SQLModel.metadata
+
+logger = logging.getLogger("alembic.env")
 
 # Override the sqlalchemy.url with environment variable if available
 if os.environ.get("DATABASE_URL"):
